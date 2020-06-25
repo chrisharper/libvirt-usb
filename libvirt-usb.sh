@@ -1,33 +1,30 @@
 #!/bin/bash
-set -e 
+set -e
 
 DEVICE[0]=1050:0407:arch
 
-
-
 if [[ -z "${SUBSYSTEM}" ]] || [[ "${SUBSYSTEM}" != "usb" ]]; then
-  echo "Missing or incorrect udev SUBSYSTEM" 
+  echo "Missing or incorrect udev SUBSYSTEM"
   exit 1
 fi
+
 if [[ -z "${ID_VENDOR_ID}" ]] || [[ -z "${ID_MODEL_ID}"  ]]; then
-  echo "Missing ID_VENDOR_ID or ID_MODEL_ID" 
+  echo "Missing ID_VENDOR_ID or ID_MODEL_ID"
   exit 1
 fi
-
-
 
 for i in "${DEVICE[@]}"
 do
-	if [[ "${ID_VENDOR_ID}:${ID_MODEL_ID}" == ${i%:*} ]] ; then 
-		virt_host="${i##*:}"	
-	fi
+        if [[ "${ID_VENDOR_ID}:${ID_MODEL_ID}" == ${i%:*} ]] ; then
+                virt_host="${i##*:}"
+        fi
 done
 
 if [[ -z ${virt_host} ]]; then
   exit 1
 else
-	echo "attaching"
-	
+        echo "attaching"
+
   virsh attach-device ${virt_host} /dev/stdin << EOF
     <hostdev mode='subsystem' type='usb' managed='yes'>
       <source>
