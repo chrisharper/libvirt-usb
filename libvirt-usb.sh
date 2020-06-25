@@ -1,33 +1,51 @@
 #!/bin/bash
-set -e
 
-DEVICE[0]=1050:0407:arch
+set -e
+PRODUCTS[0]="1050/407/512:arch"
 
 if [[ -z "${SUBSYSTEM}" ]] || [[ "${SUBSYSTEM}" != "usb" ]]; then
-  echo "Missing or incorrect udev SUBSYSTEM"
-  exit 1
+	echo "Missing or incorrect udev SUBSYSTEM" | systemd-cat -t libvirt-usb
+	exit 1
+fi
+
+if [[ -z "${PRODUCT}" ]] ; then
+	echo "Missing PRODUCT"
+	exit 1
 fi
 
 if [[ -z "${ID_VENDOR_ID}" ]] || [[ -z "${ID_MODEL_ID}"  ]]; then
-  echo "Missing ID_VENDOR_ID or ID_MODEL_ID"
-  exit 1
+	echo "Missing ID_VENDOR_ID or ID_MODEL_ID" | systemd-cat -t libvirt-usb
+        exit 1
 fi
 
-for i in "${DEVICE[@]}"
+for i in "${PRODUCTS[@]}"
 do
-        if [[ "${ID_VENDOR_ID}:${ID_MODEL_ID}" == ${i%:*} ]] ; then
-                virt_host="${i##*:}"
+
+        if [[ "${PRODUCT}" == ${i%:*} ]] ; then
+                VIRT_HOST="${i##*:}"
+		PRODUCT="${i%:*}"
+		tmp="${i%:*}"
+		tmp2="${tmp%/*}"
+		VENDOR_ID=$(printf %04d ${tmp2%/*})
+		MODEL_ID=$(printf %04d ${tmp2#*/})
+		if [[ "${ACTION}" == "bind" ]]; then 	
+			COMMAND="attach-device"
+
+		elif [[ "${ACTION}" == unbind ]]; then 
+			COMMAND="detach-device"
+		fi
         fi
 done
 
-if [[ -z ${virt_host} ]]; then
+if [[ -z ${VIRT_HOST} ]]; then
   exit 1
 else
-  virsh attach-device ${virt_host} /dev/stdin << EOF
+echo "Running ${COMMAND} on ${PRODUCT}" | systemd-cat -t libvirt-usb
+  virsh ${COMMAND} ${VIRT_HOST} /dev/stdin << EOF
     <hostdev mode='subsystem' type='usb' managed='yes'>
       <source>
-        <vendor id='0x${ID_VENDOR_ID}'/>
-        <product id='0x${ID_MODEL_ID}'/>
+        <vendor id='0x${VENDOR_ID}'/>
+        <product id='0x${MODEL_ID}'/>
       </source>
     </hostdev>
 EOF
