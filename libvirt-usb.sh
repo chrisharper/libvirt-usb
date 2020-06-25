@@ -23,8 +23,6 @@ done
 if [[ -z ${virt_host} ]]; then
   exit 1
 else
-        echo "attaching"
-
   virsh attach-device ${virt_host} /dev/stdin << EOF
     <hostdev mode='subsystem' type='usb' managed='yes'>
       <source>
