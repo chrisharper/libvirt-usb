@@ -13,11 +13,6 @@ if [[ -z "${PRODUCT}" ]] ; then
 	exit 1
 fi
 
-if [[ -z "${ID_VENDOR_ID}" ]] || [[ -z "${ID_MODEL_ID}"  ]]; then
-	echo "Missing ID_VENDOR_ID or ID_MODEL_ID" | systemd-cat -t libvirt-usb
-        exit 1
-fi
-
 for i in "${PRODUCTS[@]}"
 do
 
