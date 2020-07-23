@@ -11,17 +11,20 @@ Place 60-usb-libvirt.rules in /etc/udev/rules.d
 
 Place libvirt-usb.sh in /etc/libvirt/
 
+Place libvirt-usb.config in /etc/libvirt/
+
 # Usage
 
-Edit the PRODUCTS array members in the libvirt-usb.sh file with the string format
+Edit the libvirt-usb.config file with the format
 
-    PRODUCTS[ID]="PRODUCT_ID:VIRT_HOST_NAME"
+    PRODUCT:VIRT_HOST_NAME
     
-    PRODUCTS[0]=1050/407/512:arch
-    PRODUCTS[1]=4012/0235/323:debian
-    PRODUCTS[2]=3674/724/3:windows-10
+For example the following defines two USB devices being added to seperate guests
 
-PRODUCT_ID can be gotten using udevadm and plugging or removing the device and VIRT_HOST_NAME is the name of the guest in virsh list :
+    1050/407/512:desktop
+    1344/237/232:ubuntu_server
+
+PRODUCT can be gotten using udevadm and plugging or removing the device and VIRT_HOST_NAME is the name of the guest in virsh list :
 
     [user@host]$ udevadm monitor --subsystem-match=usb --property --udev
 
@@ -43,6 +46,6 @@ PRODUCT_ID can be gotten using udevadm and plugging or removing the device and V
     MAJOR=189
     MINOR=26
 
-If the guest we are adding to were called 'arch' the string would be as follows for the above device:
+If the guest we are adding to were called 'desktop' the line would be as follows for the above device:
 
-    PRODUCTS[1]="1050/470/512:arch"
+    1050/470/512:desktop
