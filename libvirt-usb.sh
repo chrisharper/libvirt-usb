@@ -31,8 +31,8 @@ do
 		PRODUCT="${i%:*}"
 		tmp="${i%:*}"
 		tmp2="${tmp%/*}"
-		VENDOR_ID=$(printf %04d ${tmp2%/*})
-		MODEL_ID=$(printf %04d ${tmp2#*/})
+		VENDOR_ID=${tmp2%/*}
+		MODEL_ID=${tmp2#*/}
 		if [[ "${ACTION}" == "bind" ]]; then 	
 			COMMAND="attach-device"
 
