@@ -25,7 +25,7 @@ Edit the libvirt-usb.config file with the format
     
 For example the following defines two USB devices being added to seperate guests with a third entry adding all other devices to a third guest.
 
-    1050/407/512:media
+    1010/415/312:media
     1344/237/232:print_server
     *:desktop
     
