@@ -1,44 +1,43 @@
 #!/bin/bash
 
 set -e
-PRODUCTS=()
-product_line_count=0
+CONFIG=()
+line_count=0
 
 if [[ -z "${SUBSYSTEM}" ]] || [[ "${SUBSYSTEM}" != "usb" ]]; then
-	echo "Missing or incorrect udev SUBSYSTEM" | systemd-cat -t libvirt-usb
-	exit 1
+  echo "Missing or incorrect udev SUBSYSTEM" | systemd-cat -t libvirt-usb
+  exit 1
 fi
 
 if [[ -z "${PRODUCT}" ]] ; then
-	echo "Missing PRODUCT" | systemd-cat -t libvirt-usb
-	exit 1
+  echo "Missing PRODUCT" | systemd-cat -t libvirt-usb
+  exit 1
 fi
 
 while IFS= read -r line
 do
-	echo "Read '$line' from config " | systemd-cat -t libvirt-usb 
-	PRODUCTS[product_line_count]=$line
-	((product_line_count+=1))
-
+  echo "Read '$line' from config " | systemd-cat -t libvirt-usb 
+  CONFIG[line_count]=$line
+  ((line_count+=1))
 done < /etc/libvirt/libvirt-usb.config
 
-
-for i in "${PRODUCTS[@]}"
+for i in "${CONFIG[@]}"
 do
-
-  if [[ "${PRODUCT}" == ${i%:*} ]] ; then
+  if [[ ${i%:*} == "${PRODUCT}" ||  ${i%:*} == "*" ]] ; then
+    #virt gust name from config
     VIRT_HOST="${i##*:}"
-		PRODUCT="${i%:*}"
-		tmp="${i%:*}"
-		tmp2="${tmp%/*}"
-		VENDOR_ID=${tmp2%/*}
-		MODEL_ID=${tmp2#*/}
-		if [[ "${ACTION}" == "bind" ]]; then 	
-			COMMAND="attach-device"
+    
+    #PRODUCT ENV split into needed variables
+    tmp="${PRODUCT%/*}"
+    VENDOR_ID=${tmp%/*}
+    MODEL_ID=${tmp#*/}
 
-		elif [[ "${ACTION}" == unbind ]]; then 
-			COMMAND="detach-device"
-		fi
+    if [[ "${ACTION}" == "bind" ]]; then 	
+      COMMAND="attach-device"
+    elif [[ "${ACTION}" == unbind ]]; then 
+      COMMAND="detach-device"
+    fi
+    break;
   fi
 done
 
@@ -47,7 +46,7 @@ if [[ -z ${VIRT_HOST} ]]; then
   echo "No match for $PRODUCT" | systemd-cat -t libvirt-usb
   exit 1
 else
-echo "Running ${COMMAND} on ${PRODUCT} against ${VIRT_HOST}" | systemd-cat -t libvirt-usb
+  echo "Running ${COMMAND} on ${PRODUCT} against ${VIRT_HOST}" | systemd-cat -t libvirt-usb
   virsh ${COMMAND} ${VIRT_HOST} /dev/stdin << EOF
     <hostdev mode='subsystem' type='usb' managed='yes'>
       <source>
