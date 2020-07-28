@@ -1,8 +1,8 @@
 # About
 
-This will allow plugging USB devices into virt/kvm hosts dynamically using UDEV rules.
+This will allow plugging USB devices into virt/kvm guests dynamically using UDEV rules.
 
-The rule will pass all USB devices to the handler script where the device can be attached or ignored.
+Allows mounting specific devices to specific guests or wildcard matching to bind all devices to a guest.
 
 
 # Install
@@ -17,7 +17,7 @@ Place libvirt-usb.config in /etc/libvirt/
 
 The config file lists devices by udev PRODUCT and the virt guest it should be attached too.
 
-Devices will be bound to the guest on the FIRST match only and ignored if no matches or wildcard.
+Devices will be bound to the guest on the FIRST match only and ignored if no matches.
 
 Edit the libvirt-usb.config file with the format
 
@@ -29,7 +29,9 @@ For example the following defines two USB devices being added to seperate guests
     1344/237/232:print_server
     *:desktop
     
-the * wildcard will match all USB devices plugged into the host and bind them to the given guest.
+The * wildcard will match all USB devices plugged into the host and bind them to the given guest.
+
+If there are no matches the device is passed through to the host as normal.
 
 PRODUCT can be gotten using udevadm and plugging or removing the device and VIRT_HOST_NAME is the name of the guest in virsh list :
 
